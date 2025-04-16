@@ -1,0 +1,30 @@
+name: booru-bot
+
+services:
+  db:
+    image: postgres:alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - 5432:5432
+    volumes:
+      - data:/var/lib/postgresql/data
+
+  server:
+    image: denoland/deno:alpine
+    depends_on:
+      - db
+    restart: unless-stopped
+    command: run --allow-env --allow-net --unstable-cron src/main.ts
+    environment:
+      - PGHOST=db
+      - PGUSER=postgres
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+    user: deno
+    volumes:
+      - .:/server
+    working_dir: /server
+
+volumes:
+  data:

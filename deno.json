@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@/": "./src/",
+    "postgres": "npm:postgres@^3.4.5"
+  }
+}
