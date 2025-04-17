@@ -1,16 +1,59 @@
 {
   "version": "4",
   "specifiers": {
-    "npm:postgres@^3.4.5": "3.4.5"
+    "jsr:@olli/kvdex@^3.3.0": "3.3.0",
+    "jsr:@std/bytes@^1.0.4": "1.0.5",
+    "jsr:@std/cli@1.0.12": "1.0.12",
+    "jsr:@std/collections@^1.0.9": "1.0.10",
+    "jsr:@std/ulid@1": "1.0.0",
+    "npm:@atcute/bluesky@^2.0.1": "2.0.1_@atcute+client@3.0.1",
+    "npm:@atcute/client@^3.0.1": "3.0.1",
+    "npm:zod@^3.24.0": "3.24.3"
+  },
+  "jsr": {
+    "@olli/kvdex@3.3.0": {
+      "integrity": "d27cbd0a5d8233c76493be7aa45d2099f97970e07c0f62529f184bacb1e68232",
+      "dependencies": [
+        "jsr:@std/bytes",
+        "jsr:@std/cli",
+        "jsr:@std/collections",
+        "jsr:@std/ulid",
+        "npm:zod"
+      ]
+    },
+    "@std/bytes@1.0.5": {
+      "integrity": "4465dd739d7963d964c809202ebea6d5c6b8e3829ef25c6a224290fbb8a1021e"
+    },
+    "@std/cli@1.0.12": {
+      "integrity": "e5cfb7814d189da174ecd7a34fbbd63f3513e24a1b307feb2fcd5da47a070d90"
+    },
+    "@std/collections@1.0.10": {
+      "integrity": "903af106a3d92970d74e20f7ebff77d9658af9bef4403f1dc42a7801c0575899"
+    },
+    "@std/ulid@1.0.0": {
+      "integrity": "d41c3d27a907714413649fee864b7cde8d42ee68437d22b79d5de4f81d808780"
+    }
   },
   "npm": {
-    "postgres@3.4.5": {
-      "integrity": "sha512-cDWgoah1Gez9rN3H4165peY9qfpEo+SA61oQv65O3cRUE1pOEoJWwddwcqKE8XZYjbblOJlYDlLV4h67HrEVDg=="
+    "@atcute/bluesky@2.0.1_@atcute+client@3.0.1": {
+      "integrity": "sha512-keLHWEiKPYYltLwU23gTy16XzfrfD3Bhm7Bv15ey5tfBXNu1+cDdElucIZpWKQQgLiThPfQJkhkKAOBYyLqbXA==",
+      "dependencies": [
+        "@atcute/client"
+      ]
+    },
+    "@atcute/client@3.0.1": {
+      "integrity": "sha512-j51SuQYQj5jeKrx1DCXx+Q3fpVvO0JYGnKnJAdDSlesSLjPXjvnx1abC+hkuro58KRHHJvRA6P1MC0pmJsWfcg=="
+    },
+    "zod@3.24.3": {
+      "integrity": "sha512-HhY1oqzWCQWuUqvBFnsyrtZRhyPeR7SUGv+C4+MsisMuVfSPx8HpwWqH8tRahSlt6M3PiFAcoeFhZAqIXTxoSg=="
     }
   },
   "workspace": {
     "dependencies": [
-      "npm:postgres@^3.4.5"
+      "jsr:@olli/kvdex@^3.3.0",
+      "npm:@atcute/bluesky@^2.0.1",
+      "npm:@atcute/client@^3.0.1",
+      "npm:zod@^3.24.0"
     ]
   }
 }

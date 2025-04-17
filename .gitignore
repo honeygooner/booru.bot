@@ -1,3 +1,7 @@
-.DS_Store
-.env
-*.log
+# see: https://git-scm.com/docs/gitignore
+
+**/node_modules/
+**/.DS_Store
+**/.env
+**/*.log
+**/*.sqlite*

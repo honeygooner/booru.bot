@@ -4,8 +4,8 @@
 
 ### setup
 
-set a postgres password
+set an access token
 
 ```shell
-echo "POSTGRES_PASSWORD=$(openssl rand -hex 32)" >> .env
+echo "DENO_KV_ACCESS_TOKEN=$(openssl rand -hex 32)" >> .env
 ```

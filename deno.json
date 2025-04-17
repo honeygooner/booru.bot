@@ -1,6 +1,13 @@
 {
+  "compilerOptions": {
+    "types": ["@atcute/bluesky/lexicons"]
+  },
   "imports": {
     "@/": "./src/",
-    "postgres": "npm:postgres@^3.4.5"
-  }
+    "@atcute/bluesky": "npm:@atcute/bluesky@^2.0.1",
+    "@atcute/client": "npm:@atcute/client@^3.0.1",
+    "@olli/kvdex": "jsr:@olli/kvdex@^3.3.0",
+    "zod": "npm:zod@^3.24.0"
+  },
+  "unstable": ["cron", "kv"]
 }

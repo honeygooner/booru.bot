@@ -1,30 +1,29 @@
+# see:
+# * https://docs.docker.com/go/compose-spec-reference
+# * https://github.com/docker/awesome-compose
+
 name: booru-bot
 
 services:
-  db:
-    image: postgres:alpine
+  kv:
+    image: ghcr.io/denoland/denokv
     restart: unless-stopped
     environment:
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DENO_KV_ACCESS_TOKEN=${DENO_KV_ACCESS_TOKEN}
+      - DENO_KV_SQLITE_PATH=/data/denokv.sqlite
     ports:
-      - 5432:5432
+      - 4512:4512
     volumes:
-      - data:/var/lib/postgresql/data
+      - data:/data
+    command: serve
 
   server:
-    image: denoland/deno:alpine
-    depends_on:
-      - db
+    build: .
     restart: unless-stopped
-    command: run --allow-env --allow-net --unstable-cron src/main.ts
+    depends_on:
+      - kv
     environment:
-      - PGHOST=db
-      - PGUSER=postgres
-      - PGPASSWORD=${POSTGRES_PASSWORD}
-    user: deno
-    volumes:
-      - .:/server
-    working_dir: /server
+      - DENO_KV_ACCESS_TOKEN=${DENO_KV_ACCESS_TOKEN}
 
 volumes:
   data:

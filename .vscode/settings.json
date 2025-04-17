@@ -1,14 +1,19 @@
 // see: https://docs.deno.com/runtime/reference/vscode
 {
   "cSpell.words": [
+    "atcute",
     "atproto",
-    "booru",
     "bluesky",
+    "booru",
     "bsky",
     "danbooru",
+    "denokv",
     "denoland",
+    "dockerenv",
     "iqdb",
-    "xrpc",
+    "kvdex",
+    "olli",
+    "xrpc"
   ],
   "deno.enable": true,
   "deno.lint": true,
@@ -22,5 +27,5 @@
     "CODEOWNERS": "ignore"
   },
   "typescript.preferences.importModuleSpecifier": "non-relative",
-  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "typescript.preferences.preferTypeOnlyAutoImports": true
 }
