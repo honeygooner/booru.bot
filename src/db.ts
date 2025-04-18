@@ -2,7 +2,7 @@ import type { At } from "@atcute/client/lexicons";
 import { collection, kvdex, model } from "@olli/kvdex";
 import { z } from "zod";
 
-const kv = await Deno.openKv("http://kv:4512");
+const kv = await Deno.openKv("http://denokv:4512");
 
 export const db = kvdex({
   kv,

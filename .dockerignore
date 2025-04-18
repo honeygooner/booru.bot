@@ -6,9 +6,10 @@
 **/node_modules/
 **/.dockerignore
 **/.DS_Store
-**/.env
 **/.gitignore
+**/*.env
 **/*.log
+**/*.sqlite*
 **/compose.y*ml
 **/docker-compose*
 **/Dockerfile*

@@ -2,28 +2,33 @@
 # * https://docs.docker.com/go/compose-spec-reference
 # * https://github.com/docker/awesome-compose
 
+# todo:
+# * configure caddy as an https terminating proxy for denokv
+# * configure caddy as a reverse proxy for the app
+
 name: booru-bot
 
 services:
-  kv:
+  denokv:
     image: ghcr.io/denoland/denokv
     restart: unless-stopped
-    environment:
-      - DENO_KV_ACCESS_TOKEN=${DENO_KV_ACCESS_TOKEN}
-      - DENO_KV_SQLITE_PATH=/data/denokv.sqlite
-    ports:
-      - 4512:4512
+    command: --sqlite-path=/data/denokv.sqlite serve
+    env_file:
+      - token.env
+    expose:
+      - 4512
     volumes:
       - data:/data
-    command: serve
 
   server:
     build: .
     restart: unless-stopped
     depends_on:
-      - kv
-    environment:
-      - DENO_KV_ACCESS_TOKEN=${DENO_KV_ACCESS_TOKEN}
+      - denokv
+    env_file:
+      - token.env
+    expose:
+      - 8000
 
 volumes:
   data:
