@@ -2,13 +2,14 @@ import type { At } from "@atcute/client/lexicons";
 import { collection, kvdex, model } from "@olli/kvdex";
 import { z } from "zod";
 
-const kv = await Deno.openKv("http://denokv:4512");
+/** the life of any entry in ms, after which it will be considered stale */
+export const TTL = 1000 * 60 * 60 * 12; // 12 hours
 
 export const db = kvdex({
-  kv,
+  kv: await Deno.openKv("http://denokv:4512"),
   schema: {
-    /** a collection of timestamps corresponding to previous job runs */
-    runs: collection(model<number>()),
+    /** a collection of known errors, intended to defer some requests */
+    errors: collection(model<string>()),
 
     /** maps danbooru artists to bluesky profiles */
     profiles: collection(
@@ -17,6 +18,7 @@ export const db = kvdex({
         idGenerator: (profile) => `${profile.did}:${profile.artistId}`,
         indices: {
           did: "primary",
+          handle: "secondary",
           artistId: "secondary",
         },
       },
@@ -39,10 +41,10 @@ export const db = kvdex({
 const Profile = z.object({
   /** the did of the bluesky profile */
   did: z.custom<At.Did>(),
+  /** the handle of the bluesky profile (WARNING: can change, use with discretion) */
+  handle: z.custom<At.Handle>(),
   /** the id of the respective danbooru artist */
   artistId: z.number(),
-  /** the last error message (e.g. when verifying the bluesky profile) */
-  lastError: z.string().nullable().default(null),
   /** the timestamp of the last successful index */
   indexedAt: z.number().default(Date.now),
 });

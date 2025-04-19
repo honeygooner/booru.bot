@@ -1,8 +1,6 @@
-import { db } from "@/db.ts";
+import { time } from "@/util.ts";
+import indexProfiles from "./scripts/index-profiles.ts";
 
-Deno.cron("test cron", "* * * * *", async () => {
-  await db.runs.add(Date.now());
-  const count = await db.runs.count();
+const nextMinute = new Date().getMinutes() + 1;
 
-  console.log("test cron", count);
-});
+Deno.cron(indexProfiles.name, `${nextMinute} * * * *`, time(indexProfiles));
