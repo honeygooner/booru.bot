@@ -48,6 +48,8 @@ const Post = z.object({
   postUri: z.custom<At.ResourceUri>(),
   /** the id of the respective danbooru post */
   postId: z.number(),
+  /** the tags of the respective danbooru post */
+  tags: z.string().transform((tags) => tags.split(" ")),
   /** the timestamp of the last successful index */
   indexedAt: z.number().default(Date.now),
 });

@@ -1,21 +1,23 @@
-import { getList, getProfile } from "@/bluesky/appview.ts";
+import { getList, getListFeed, getProfile } from "@/bluesky/appview.ts";
 import { createListitem } from "@/bluesky/entryway.ts";
-import { getArtistUrls } from "@/danbooru.ts";
+import { getArtistUrls, getIqdbQuery } from "@/danbooru/api.ts";
 import { db } from "@/db.ts";
 import { PROFILE_URL_GLOB, PROFILE_URL_REGEX, TTL } from "@/util/const.ts";
 import { mapByAsync } from "@/util/helper.ts";
-import type { At } from "@atcute/client/lexicons";
 import { XRPCError } from "@atcute/client";
+import type { At, ComAtprotoLabelDefs } from "@atcute/client/lexicons";
 import { pooledMap } from "@std/async/pool";
 
+const LABELS: ComAtprotoLabelDefs.LabelValue[] = ["nudity", "porn", "sexual"];
 // set to the max limit to reduce the number of requests
 // see: https://danbooru.donmai.us/wiki_pages/help:users
 const LIMIT = 1000;
 const POOL_LIMIT = 10;
+const SCORE_THRESHOLD = 92;
 
-export default async function indexProfiles() {
+export default async function indexing() {
   // stage 1: cache artist profiles from danbooru in local database
-  console.info(indexProfiles.name, "stage 1:");
+  console.info(indexing.name, "stage 1:");
 
   const artistUrls = getArtistUrls({
     "search[url_matches]": PROFILE_URL_GLOB,
@@ -53,7 +55,7 @@ export default async function indexProfiles() {
   );
 
   // stage 2: index artist profiles in bluesky list
-  console.info(indexProfiles.name, "stage 2:");
+  console.info(indexing.name, "stage 2:");
 
   const { result: profiles } = await db.profiles.getMany();
   console.info("profiles:", profiles.length);
@@ -87,6 +89,61 @@ export default async function indexProfiles() {
             return Promise.reject(error);
           }
         });
+    }),
+  );
+
+  // todo: sync / remove artist profiles from the list
+
+  // stage 3: index posts
+  console.info(indexing.name, "stage 3:");
+
+  const listFeed = getListFeed({ params: { list, limit: 100 } });
+  await Array.fromAsync(
+    pooledMap(POOL_LIMIT, listFeed, async ({ post }) => {
+      // skip is already indexed
+      if (await db.posts.findByPrimaryIndex("postUri", post.uri)) {
+        console.log("✔", post.uri, "(cache)");
+        return;
+      }
+
+      // skip if not supported by iqdb
+      if (post.embed?.$type !== "app.bsky.embed.images#view") {
+        console.log("✘", post.uri, "(unsupported)");
+        return;
+      }
+
+      // skip if missing labels
+      if (!post.labels?.some(({ val }) => LABELS.includes(val))) {
+        console.log("✘", post.uri, "(unlabelled)");
+        return;
+      }
+
+      // check iqdb for the embedded images
+      // note: using `POOL_LIMIT` for convenience, but max is only 4
+      await Array.fromAsync(
+        pooledMap(POOL_LIMIT, post.embed.images, async ({ thumb }) => {
+          const query = await getIqdbQuery({ "search[url]": thumb });
+
+          // skip if no match
+          if (!query) {
+            console.log("✘ iqdb:", thumb, "(no match)");
+            return;
+          }
+
+          // skip if score is too low
+          if (query.score < SCORE_THRESHOLD) {
+            console.log("✘ iqdb:", thumb, "(low score)", query.score);
+            return;
+          }
+
+          // add the post to the database
+          const { post_id: postId, post: { tag_string: tags } } = query;
+          await db.posts.add(
+            { postUri: post.uri, postId, tags },
+            { overwrite: true },
+          );
+        }),
+      );
     }),
   );
 }

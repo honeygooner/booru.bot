@@ -1,6 +1,6 @@
 import { time } from "@/util/helper.ts";
-import indexProfiles from "./scripts/index-profiles.ts";
+import indexing from "./scripts/indexing.ts";
 
 const nextMinute = new Date().getMinutes() + 1;
 
-Deno.cron(indexProfiles.name, `${nextMinute} * * * *`, time(indexProfiles));
+Deno.cron(indexing.name, `${nextMinute} * * * *`, time(indexing));
