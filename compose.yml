@@ -27,6 +27,7 @@ services:
       - denokv
     env_file:
       - token.env
+      - .env
     expose:
       - 8000
 

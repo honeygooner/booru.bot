@@ -2,9 +2,6 @@ import type { At } from "@atcute/client/lexicons";
 import { collection, kvdex, model } from "@olli/kvdex";
 import { z } from "zod";
 
-/** the life of any entry in ms, after which it will be considered stale */
-export const TTL = 1000 * 60 * 60 * 12; // 12 hours
-
 export const db = kvdex({
   kv: await Deno.openKv("http://denokv:4512"),
   schema: {

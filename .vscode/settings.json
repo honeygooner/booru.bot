@@ -1,6 +1,7 @@
 // see: https://docs.deno.com/runtime/reference/vscode
 {
   "cSpell.words": [
+    "appview",
     "atcute",
     "atproto",
     "bluesky",
@@ -9,10 +10,13 @@
     "danbooru",
     "denokv",
     "denoland",
+    "dids",
     "dockerenv",
     "iqdb",
     "kvdex",
+    "nsid",
     "olli",
+    "reposts",
     "xrpc"
   ],
   "deno.enable": true,
