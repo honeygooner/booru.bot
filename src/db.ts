@@ -8,9 +8,6 @@ export const TTL = 1000 * 60 * 60 * 12; // 12 hours
 export const db = kvdex({
   kv: await Deno.openKv("http://denokv:4512"),
   schema: {
-    /** a collection of known errors, intended to defer some requests */
-    errors: collection(model<string>()),
-
     /** maps danbooru artists to bluesky profiles */
     profiles: collection(
       model((profile: z.input<typeof Profile>) => Profile.parse(profile)),

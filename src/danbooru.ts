@@ -23,7 +23,7 @@ export const getArtistUrls = async function* (
       }[]>();
 
     if (!data.length) break;
-    yield data;
+    yield* data;
     params.page = `b${data.at(-1)!.id}`;
   }
 };

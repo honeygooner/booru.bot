@@ -1,16 +1,13 @@
 import { appView, PROFILE_URL_GLOB, PROFILE_URL_REGEX } from "@/bluesky.ts";
 import { getArtistUrls } from "@/danbooru.ts";
 import { db, TTL } from "@/db.ts";
-import { chunk } from "@/util.ts";
-import { XRPCError } from "@atcute/client";
 import type { At } from "@atcute/client/lexicons";
-
-// todo: handle rate limit errors
+import { pooledMap } from "@std/async/pool";
 
 // set to the max limit to reduce the number of requests
 // see: https://danbooru.donmai.us/wiki_pages/help:users
 const LIMIT = 1000;
-const CHUNK_SIZE = 5;
+const POOL_LIMIT = 10;
 
 export default async function indexProfiles() {
   const artistUrls = getArtistUrls({
@@ -18,57 +15,32 @@ export default async function indexProfiles() {
     limit: LIMIT,
   });
 
-  for await (const data of artistUrls) {
-    console.count("page");
+  await Array.fromAsync(
+    pooledMap(POOL_LIMIT, artistUrls, async ({ artist_id: artistId, url }) => {
+      // match should reasonably be present given the search param glob
+      const actor = url.match(PROFILE_URL_REGEX)![0] as At.Identifier;
 
-    // batch requests to speed up the process
-    for (const batch of chunk(data, CHUNK_SIZE)) {
-      const requests = batch.map(async ({ artist_id: artistId, url }) => {
-        // match should reasonably be present given the search param glob
-        const [identifier] = url.match(PROFILE_URL_REGEX)!;
-        const requestId = `${indexProfiles.name}:${identifier}`;
+      // skip if the profile is cached and not expired
+      const profile =
+        await db.profiles.findByPrimaryIndex("did", actor as At.Did) ||
+        await db.profiles.getOneBySecondaryIndex("handle", actor as At.Handle);
+      if (profile && Date.now() - profile.value.indexedAt < TTL) {
+        console.info("✔", profile.value.did, "(cache)");
+        return;
+      }
 
-        // skip if an error from a matching request is cached
-        const error = await db.errors.find(requestId);
-        if (error) {
-          console.error("✘ (cache):", error.value, identifier);
-          return;
-        }
-
-        // skip if the profile is cached and not expired
-        // deno-fmt-ignore
-        const profile =
-          await db.profiles.findByPrimaryIndex("did", identifier as At.Did) ||
-          await db.profiles.getOneBySecondaryIndex("handle", identifier as At.Handle);
-        if (profile && Date.now() - profile.value.indexedAt < TTL) {
-          console.info("✔ (cache):", profile.value.did);
-          return;
-        }
-
-        // request up-to-date profile data from the app view
-        try {
-          const { data } = await appView.get("app.bsky.actor.getProfile", {
-            params: {
-              actor: identifier as At.Identifier,
-            },
-          });
-          const { did, handle } = data;
+      // request up-to-date profile data from the app view
+      await appView.get("app.bsky.actor.getProfile", { params: { actor } })
+        .then(async ({ data: { did, handle } }) => {
           await db.profiles.add({ did, handle, artistId }, { overwrite: true });
-          await db.errors.delete(requestId);
-
-          console.info("✔ indexed:", did);
-        } catch (error) {
-          if (!(error instanceof XRPCError) || !error.kind) throw error;
-          await db.errors.set(requestId, error.kind, { expireIn: TTL });
-
-          console.error("✘ errored:", error.kind, identifier);
-        }
-      });
-
-      await Promise.allSettled(requests);
-    }
-  }
+          console.info("✔", did);
+        })
+        .catch((error) => {
+          console.error("✘", actor);
+          console.error(error instanceof Error ? error.message : error);
+        });
+    }),
+  );
 
   console.info("profiles:", await db.profiles.count());
-  console.countReset("page");
 }
